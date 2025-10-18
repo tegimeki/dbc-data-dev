@@ -32,10 +32,10 @@ impl<'a> SignalInfo<'a> {
     /// Create signal information
     pub fn new(signal: &'a Signal, message: &MessageInfo) -> Self {
         // TODO: sanitize and/or change name format
-        let name = signal.name();
-        let signed = matches!(signal.value_type(), ValueType::Signed);
-        let width = *signal.signal_size() as usize;
-        let scale = *signal.factor() as f32;
+        let name = signal.name.clone();
+        let signed = matches!(signal.value_type, ValueType::Signed);
+        let width = signal.size as usize;
+        let scale = signal.factor as f32;
 
         // get storage width of signal data
         let nwidth = match width {
@@ -57,10 +57,10 @@ impl<'a> SignalInfo<'a> {
 
         Self {
             signal,
-            ident: Ident::new(name, message.ident.span()),
+            ident: Ident::new(&name, message.ident.span()),
             ntype: Ident::new(ntype, message.ident.span()),
             utype: Ident::new(utype, message.ident.span()),
-            start: *signal.start_bit() as usize,
+            start: signal.start_bit as usize,
             scale,
             signed,
             width,
@@ -87,9 +87,9 @@ impl<'a> SignalInfo<'a> {
     /// Generate the code for extracting signal bits
     fn extract_bits(&self) -> TokenStream {
         let same_width = self.width == self.nwidth;
-        let le = self.signal.byte_order() == &ByteOrder::LittleEndian;
+        let le = self.signal.byte_order == ByteOrder::LittleEndian;
         let bit_aligned = if le {
-            (self.start % 8) == 0
+            self.start.is_multiple_of(8)
         } else {
             (self.start % 8) == 7
         };
@@ -313,7 +313,7 @@ impl<'a> SignalInfo<'a> {
             let ntype = &self.ntype;
             if self.is_float() {
                 let scale = self.scale;
-                let offset = *self.signal.offset() as f32;
+                let offset = self.signal.offset as f32;
                 quote! {
                     self.#name = ((#value as f32) * #scale) + #offset;
                 }
@@ -345,7 +345,7 @@ impl<'a> SignalInfo<'a> {
             let utype = &self.utype;
             let left = self.start % 8;
             // let right = (self.start + self.width) % 8;
-            let le = self.signal.byte_order() == &ByteOrder::LittleEndian;
+            let le = self.signal.byte_order == ByteOrder::LittleEndian;
 
             let mut ts = TokenStream::new();
             if self.is_float() {

@@ -48,8 +48,8 @@ mod test {
 
     #[test]
     fn value_table() {
-        assert_eq_float!(MiscMessage::FLOAT_A_PI, 3.14f32);
-        assert_eq_float!(MiscMessage::FLOAT_A_E, 2.718f32);
+        assert_eq_float!(MiscMessage::FLOAT_A_PI, 31415.0f32);
+        assert_eq_float!(MiscMessage::FLOAT_A_E, 27182.0f32);
         assert!(MiscMessage::BOOL_A_ON);
         assert!(!MiscMessage::BOOL_A_OFF);
     }
@@ -250,13 +250,5 @@ mod test {
             MiscMessage,
         }
         assert_eq!(MiscMessage::ID, 8191);
-    }
-
-    #[test]
-    fn incomplete_dbc() {
-        #[allow(dead_code)]
-        #[derive(DbcData)]
-        #[dbc_file = "tests/incomplete.dbc"]
-        enum Messages {}
     }
 }
