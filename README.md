@@ -92,6 +92,11 @@ unsigned native types which are large enough to fit the contained
 values, e.g.  13-bit signals will be stored in a `u16` and 17-bit
 signals will be stored in a `u32`.
 
+## Additional `#[derive(..._]`s
+To specify additional traits derived for the generated types, use
+the `#[dbc_derive(...)]` attribute with a comma-separated list of
+trait names.
+
 ## Usage
 
 As DBC message names tend to follow different conventions from Rust

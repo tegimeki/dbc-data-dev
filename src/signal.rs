@@ -1,10 +1,11 @@
 //! Signal information and codegen
 
-use crate::MessageInfo;
 use can_dbc::{ByteOrder, Signal, ValueType};
 use proc_macro2::TokenStream;
-use quote::{quote, TokenStreamExt};
-use syn::{parse_quote, Expr, Ident};
+use quote::{TokenStreamExt, quote};
+use syn::{Expr, Ident, parse_quote};
+
+use crate::MessageInfo;
 
 /// Information about signal within message
 pub struct SignalInfo<'a> {

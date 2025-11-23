@@ -1,12 +1,17 @@
 //! Main derive macro logic
 
-use crate::{parse_attr, signal::SignalInfo, MessageInfo};
+use std::collections::BTreeMap;
+use std::fmt::Write;
+use std::fs::read;
+
 use can_dbc::{ByteOrder, Dbc};
 use proc_macro2::TokenStream;
-use quote::{quote, TokenStreamExt};
-use std::fmt::Write;
-use std::{collections::BTreeMap, fs::read};
-use syn::{spanned::Spanned, Data, DeriveInput, Fields, Ident, Result};
+use quote::{TokenStreamExt, quote};
+use syn::spanned::Spanned;
+use syn::{Data, DeriveInput, Fields, Ident, Path, Result};
+
+use crate::signal::SignalInfo;
+use crate::{MessageInfo, parse_attr};
 
 /// Data used for codegen
 pub(crate) struct DeriveData<'a> {
@@ -17,6 +22,9 @@ pub(crate) struct DeriveData<'a> {
     dbc: Dbc,
     /// All of the messages to derive
     messages: BTreeMap<String, MessageInfo<'a>>,
+    /// Additional #[derive(...)] for generated messages, defaults
+    /// to `Default`
+    derives: Vec<Path>,
 }
 
 impl<'a> DeriveData<'a> {
@@ -35,6 +43,15 @@ impl<'a> DeriveData<'a> {
                 panic!("Unable to parse {dbc_file}: {e:?}");
             }
         };
+        let derives =
+            if let Some(traits) = parse_attr(&input.attrs, "dbc_derive") {
+                traits
+                    .split(',')
+                    .filter_map(|t| syn::parse_str::<Path>(t).ok())
+                    .collect()
+            } else {
+                vec![]
+            };
 
         // gather all of the messages and associated attributes
         let mut messages: BTreeMap<String, MessageInfo<'_>> =
@@ -78,6 +95,7 @@ impl<'a> DeriveData<'a> {
             name: &input.ident,
             dbc,
             messages,
+            derives,
         })
     }
 
@@ -192,6 +210,15 @@ impl<'a> DeriveData<'a> {
                 #[allow(non_snake_case)]
                 #[allow(non_camel_case_types)]
                 #[derive(Default)]
+            });
+
+            for t in &self.derives {
+                out.append_all(quote! {
+                    #[derive(#t)]
+                });
+            }
+
+            out.append_all(quote! {
                 #[doc = #doc]
                 pub struct #ident {
                     #(

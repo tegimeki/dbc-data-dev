@@ -74,6 +74,11 @@
 //! values, e.g.  13-bit signals will be stored in a `u16` and 17-bit
 //! signals will be stored in a `u32`.
 //!
+//! ## Additional `#[derive(..._]`s
+//! To specify additional traits derived for the generated types, use
+//! the `#[dbc_derive(...)]` attribute with a comma-separated list of
+//! trait names.
+//!
 //! # Usage
 //! As DBC message names tend to follow different conventions from Rust
 //! code, it can be helpful to wrap them in `newtype` declarations.
@@ -122,11 +127,10 @@ mod derive;
 mod message;
 mod signal;
 
-use proc_macro2::TokenStream;
-use syn::{parse_macro_input, Attribute, DeriveInput, Expr, Lit, Meta, Result};
-
 use derive::DeriveData;
 use message::MessageInfo;
+use proc_macro2::TokenStream;
+use syn::{Attribute, DeriveInput, Expr, Lit, Meta, Result, parse_macro_input};
 
 /// See the crate documentation for details.
 ///
@@ -136,7 +140,7 @@ use message::MessageInfo;
 /// Individual messages may specify a `#[dbc_signals]` attribute
 /// naming the individual signals of interest; otherwise, all
 /// signals within the message are generated.
-#[proc_macro_derive(DbcData, attributes(dbc_file, dbc_signals))]
+#[proc_macro_derive(DbcData, attributes(dbc_file, dbc_derive, dbc_signals))]
 pub fn dbc_data_derive(
     input: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {

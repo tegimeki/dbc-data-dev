@@ -1,8 +1,9 @@
 //! DBC Message information
 
-use crate::parse_attr;
 use can_dbc::{AttributeValue, Dbc, MessageId};
 use syn::{Attribute, Field, Ident, Type, Variant};
+
+use crate::parse_attr;
 
 pub struct MessageInfo<'a> {
     pub id: u32,
